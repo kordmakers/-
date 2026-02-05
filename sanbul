@@ -1,0 +1,57 @@
+# Drone 12S (6S+6S) ↔ Station 6Sx2 Charging Wiring
+
+## Goal
+- Flight: 6S A + 6S B in series = 12S to ESC/FC (XT90)
+- Charging (station): 6S A and 6S B separated, charged independently (XT60-L / XT60-R)
+- Easiest HW: cut only the **series link** between A- and B+ using one switch/contactor (K1)
+
+---
+
+## Wiring (Recommended): Series Link Cut (K1)
+
+### Key idea
+- **K1 ON**  → connect A- to B+ → 12S series for flight
+- **K1 OFF** → disconnect A- from B+ → two independent 6S packs for station charging
+
+```mermaid
+flowchart LR
+  %% ===== Battery packs =====
+  subgraph A[6S Pack A]
+    Aplus((A+))
+    Aminus((A-))
+  end
+
+  subgraph B[6S Pack B]
+    Bplus((B+))
+    Bminus((B-))
+  end
+
+  %% ===== Flight connector (XT90) =====
+  subgraph F[Flight Power (XT90)]
+    XT90p[[XT90 +]]
+    XT90m[[XT90 -]]
+    LOAD[ESC/FC Power Bus]
+  end
+
+  %% ===== Station charging connectors (XT60) =====
+  subgraph S[Station Charging]
+    XT60L[[XT60-L (Charge A, 6S)]]
+    XT60R[[XT60-R (Charge B, 6S)]]
+    CHG_L[6S Charger Left]
+    CHG_R[6S Charger Right]
+  end
+
+  %% ===== Main flight routing =====
+  Aplus --> XT90p --> LOAD --> XT90m --> Bminus
+
+  %% ===== Series link cut (K1) =====
+  Aminus -- "K1 (Series Link Switch/Contactor)" --- Bplus
+
+  %% ===== Charge routing (independent) =====
+  Aplus --> XT60L
+  Aminus --> XT60L
+  Bplus --> XT60R
+  Bminus --> XT60R
+
+  XT60L --> CHG_L
+  XT60R --> CHG_R
