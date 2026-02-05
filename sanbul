@@ -1,53 +1,69 @@
-# Drone 12S (6S+6S) ↔ Station 6Sx2 Charging Wiring
+# Drone 12S (6S + 6S) ↔ Station 6S×2 Charging Wiring
 
-## Goal
-- Flight: 6S A + 6S B in series = 12S to ESC/FC (XT90)
-- Charging (station): 6S A and 6S B separated, charged independently (XT60-L / XT60-R)
-- Easiest HW: cut only the **series link** between A- and B+ using one switch/contactor (K1)
+## 목적
+- 비행 시: 6S 배터리 A + 6S 배터리 B **직렬 → 12S**
+- 충전 시(드론 스테이션): **6S A / 6S B 분리 충전**
+- 하드웨어 최소화: **직렬 링크 1개(K1)만 차단**
 
 ---
 
-## Wiring (Recommended): Series Link Cut (K1)
+## 핵심 아이디어
+- **K1 ON (비행 모드)**  
+  → A- 와 B+ 연결 → 12S → XT90으로 ESC/FC 공급
+- **K1 OFF (충전 모드)**  
+  → A- 와 B+ 분리 → 6S A / 6S B 각각 XT60으로 충전
 
-### Key idea
-- **K1 ON**  → connect A- to B+ → 12S series for flight
-- **K1 OFF** → disconnect A- from B+ → two independent 6S packs for station charging
+---
+
+## 전체 배선도 (GitHub Mermaid 렌더링)
 
 ```mermaid
 flowchart LR
-  %% ===== Battery packs =====
-  subgraph A[6S Pack A]
+  %% =========================
+  %% Battery Packs
+  %% =========================
+  subgraph A[6S Battery Pack A]
     Aplus((A+))
     Aminus((A-))
   end
 
-  subgraph B[6S Pack B]
+  subgraph B[6S Battery Pack B]
     Bplus((B+))
     Bminus((B-))
   end
 
-  %% ===== Flight connector (XT90) =====
-  subgraph F[Flight Power (XT90)]
+  %% =========================
+  %% Flight Power (12S)
+  %% =========================
+  subgraph F[Flight Power]
     XT90p[[XT90 +]]
     XT90m[[XT90 -]]
-    LOAD[ESC/FC Power Bus]
+    LOAD[ESC / FC Power Bus]
   end
 
-  %% ===== Station charging connectors (XT60) =====
-  subgraph S[Station Charging]
-    XT60L[[XT60-L (Charge A, 6S)]]
-    XT60R[[XT60-R (Charge B, 6S)]]
+  %% =========================
+  %% Station Charging (6S x2)
+  %% =========================
+  subgraph S[Drone Station Charging]
+    XT60L[[XT60-L (6S A)]]
+    XT60R[[XT60-R (6S B)]]
     CHG_L[6S Charger Left]
     CHG_R[6S Charger Right]
   end
 
-  %% ===== Main flight routing =====
+  %% =========================
+  %% Flight wiring
+  %% =========================
   Aplus --> XT90p --> LOAD --> XT90m --> Bminus
 
-  %% ===== Series link cut (K1) =====
-  Aminus -- "K1 (Series Link Switch/Contactor)" --- Bplus
+  %% =========================
+  %% Series Link (Key Point)
+  %% =========================
+  Aminus -- "K1 : Series Link Switch / Contactor" --- Bplus
 
-  %% ===== Charge routing (independent) =====
+  %% =========================
+  %% Charging wiring (independent)
+  %% =========================
   Aplus --> XT60L
   Aminus --> XT60L
   Bplus --> XT60R
